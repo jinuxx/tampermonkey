@@ -4,7 +4,17 @@
 // @version      0.1
 // @description  try to take over the world!
 // @author       You
-// @match        *://www.douyu.com/*
+// @match			*://*.douyu.com/0*
+// @match			*://*.douyu.com/1*
+// @match			*://*.douyu.com/2*
+// @match			*://*.douyu.com/3*
+// @match			*://*.douyu.com/4*
+// @match			*://*.douyu.com/5*
+// @match			*://*.douyu.com/6*
+// @match			*://*.douyu.com/7*
+// @match			*://*.douyu.com/8*
+// @match			*://*.douyu.com/9*
+// @match			*://*.douyu.com/topic/*
 // @match        *://*.huya.com/*
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
@@ -22,24 +32,18 @@ var hexcase = 0; var b64pad = ""; var chrsz = 8; function hex_md5(s) { return bi
             alert('获取房间号失败');
             return;
         }
-        getRealLive_Douyu(roomId, false, "777", "1", init_btn)
+        let potBtn = document.createElement("button");
+        // a.type = "button";
+        potBtn.innerText = "播放器"
+        potBtn.style = "position: fixed;top: 10px;right: 15px;z-index: 9999;width: 60px;height: 30px;border: 2px solid;"
+        potBtn.addEventListener("click", () => {
+            getRealLive_Douyu(roomId, false, "777", "1", (rurl) => {
+                location.href = "vlc://" + rurl.replace("https", "http");
+            })
+        })
+        document.body.appendChild(potBtn);
     }
 })();
-
-function init_btn(realUrl) {
-    if (!realUrl) {
-        alert('无法获取播放地址');
-        return;
-    }
-    let potBtn = document.createElement("button");
-    // a.type = "button";
-    potBtn.innerText = "播放器"
-    potBtn.style = "position: fixed;top: 10px;right: 15px;z-index: 9999;width: 60px;height: 30px;border: 2px solid;"
-    potBtn.addEventListener("click", function () {
-        location.href = "vlc://" + realUrl.replace("https", "http");
-    })
-    document.body.appendChild(potBtn);
-}
 
 function isAlive() {
     return true;
@@ -47,7 +51,7 @@ function isAlive() {
 
 function getRoomId() {
     // let reg = '[=/]([0-9]*)$'
-    let reg = '(?:com/|rid=)([0-9]*)$'
+    let reg = '(?:com/|rid=)([0-9]+)$'
     let matches = location.href.match(reg);
     return matches ? matches[1] : 0;
 }
@@ -64,11 +68,12 @@ function getRealLive_Douyu(room_id, is_https, qn, cdn, reallive_callback) {
         responseType: "text",
         onload: function (response) {
             let a = response.response.match(/(function ub9.*)[\s\S](var.*)/i);
+            let ridMatch = response.response.match('https://m.douyu.com/([0-9]+)');
             let b = String(a[1]).replace(/eval.*;}/, 'strc;}');
             let c = b + String(a[2]);
             let tt2 = dateFormat("yyyyMMdd", new Date());
             let tt0 = String(Math.round(new Date().getTime() / 1000).toString());
-            RealLive_get_sign_url(tt2, room_id, tt0, c, is_https, qn, cdn, reallive_callback); // 传入参数无误
+            RealLive_get_sign_url(tt2, ridMatch[1], tt0, c, is_https, qn, cdn, reallive_callback); // 传入参数无误
         }
     });
 }
